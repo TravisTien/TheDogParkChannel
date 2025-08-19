@@ -1,0 +1,108 @@
+[
+    {
+        "id": 1,
+        "channel": 3000,
+        "users": [
+            {
+                "name": "肩膀重重的",
+                "isOwner": false
+            },
+            {
+                "name": "肩膀重重的A",
+                "isOwner": true
+            },
+            {
+                "name": "肩膀重重的B",
+                "isOwner": false
+            },
+            {
+                "name": "肩膀重重的C",
+                "isOwner": false
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "channel": 3001,
+        "users": [
+            {
+                "name": "小貓咪",
+                "isOwner": false
+            },
+            {
+                "name": "小貓咪A",
+                "isOwner": true
+            },
+            {
+                "name": "小貓咪B",
+                "isOwner": false
+            },
+            {
+                "name": "小貓咪C",
+                "isOwner": false
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "channel": 3002,
+        "users": [
+            {
+                "name": "雷電俠",
+                "isOwner": true
+            },
+            {
+                "name": "雷電俠A",
+                "isOwner": false
+            },
+            {
+                "name": "雷電俠B",
+                "isOwner": false
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "channel": 3003,
+        "users": [
+            {
+                "name": "火焰女王",
+                "isOwner": false
+            },
+            {
+                "name": "火焰女王A",
+                "isOwner": false
+            },
+            {
+                "name": "火焰女王B",
+                "isOwner": true
+            },
+            {
+                "name": "火焰女王C",
+                "isOwner": false
+            },
+            {
+                "name": "火焰女王D",
+                "isOwner": false
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "channel": 3004,
+        "users": [
+            {
+                "name": "冰霜勇者",
+                "isOwner": false
+            },
+            {
+                "name": "冰霜勇者A",
+                "isOwner": false
+            },
+            {
+                "name": "冰霜勇者B",
+                "isOwner": true
+            }
+        ]
+    }
+]
