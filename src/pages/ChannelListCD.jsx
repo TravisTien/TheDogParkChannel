@@ -1,32 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Stack, Typography, IconButton, Button, Grid, Popover } from '@mui/material'
 import { ThemeProvider } from '@emotion/react';
 import { lightTheme, darkTheme } from "../theme.js";
 import { useNavigate } from 'react-router-dom';
 
+import { deleteChannel } from "../api/channelsApi.js";
+
 import ChannelForm from "./ChannelForm.jsx";
+import useStore from "../store/useStore.js";
 
 import LightModeIcon from '@mui/icons-material/LightMode';
-import channelData from "../assets/channelData.json";
 import IconSun from "../assets/icons/IconSun.jsx";
 import IconMoon from "../assets/icons/IconMoon.jsx";
 import PetsIcon from '@mui/icons-material/Pets';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FlagIcon from '@mui/icons-material/Flag';
 
-
 function ChannelListCD() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [editChannelId, setEditChannelId] = useState('');
-    const [extensions, setExtensions] = useState(channelData)
     const [isDarkMode, setIsDarkMode] = useState(true);
     const theme = isDarkMode ? darkTheme : lightTheme;
     const navigate = useNavigate();
 
+    const fetchChannel = useStore((state) => state.fetchChannel);
+    const isLoading = useStore((state) => state.isLoading);
+    const channels = useStore((state) => state.channels);
+
+    useEffect(() => {
+        fetchChannel();
+    }, [fetchChannel])
+
     const handleToggle = () => {
         setIsDarkMode(!isDarkMode);
     }
-
     const handlePopoverClose = () => {
         setAnchorEl(null);
     }
@@ -35,13 +42,14 @@ function ChannelListCD() {
         setEditChannelId(id);
     };
     const handleDeleteChannel = () => {
-        const confirmed = window.confirm(確定要刪除頻道嗎)
-        if (confirmed) {
-            console.log('已成功刪除頻道');
+        const confirmed = window.confirm('確定要刪除頻道嗎');
+        if (confirmed && editChannelId) {
+            // console.log(editChannelId);
+
+            deleteChannel(editChannelId);
+            fetchChannel();
         }
-    }
-
-
+    };
     const open = Boolean(anchorEl);
 
     return (
@@ -178,8 +186,61 @@ function ChannelListCD() {
 
                 {/* 卡片 */}
                 <Grid container spacing={1} width={"100%"}>
-                    {extensions.map(({ channel, users, id }) => (
-                        <Grid item
+                    {isLoading && (
+                        <Grid size={12}>
+                            <Stack
+                                direction={'row'}
+                                justifyContent={'center'}
+                                alignItems={'center'}
+                            >
+                                <Typography
+                                    color="text.default"
+                                    align='center'
+                                    width='auto'
+                                    padding={2}
+                                    sx={{
+                                        display: 'inline',
+                                        border: 1,
+                                        backgroundColor: "paper.main",
+                                        border: "1px solid hsla(0,0%,100%,.3)",
+                                        borderRadius: 4
+                                    }}
+                                >
+                                    載入中...
+                                </Typography>
+                            </Stack>
+                        </Grid>
+                    )}
+
+                    {channels.length === 0 && (
+                        <Grid size={12}>
+                            <Stack
+                                direction={'row'}
+                                justifyContent={'center'}
+                                alignItems={'center'}
+                            >
+                                <Typography
+                                    color="text.default"
+                                    align='center'
+                                    width='auto'
+                                    padding={2}
+                                    sx={{
+                                        display: 'inline',
+                                        border: 1,
+                                        backgroundColor: "paper.main",
+                                        border: "1px solid hsla(0,0%,100%,.3)",
+                                        borderRadius: 4
+                                    }}
+                                >
+                                    目前沒有頻道資料。
+                                </Typography>
+                            </Stack>
+                        </Grid>
+                    )}
+
+                    {channels.map(({ channel, users, id }) => (
+                        <Grid
+                            key={id}
                             size={{ xs: 12, sm: 6, md: 4 }}
                             padding={2}
                             sx={{
@@ -231,8 +292,8 @@ function ChannelListCD() {
                                         border: 0,
                                     }}
                                 >
-                                    {users.map(({ name, isOwner }) => (
-                                        <Grid size={6}>
+                                    {users.map(({ name, isOwner }, index) => (
+                                        <Grid key={`userIndex:${index}`} size={6}>
                                             <Stack
                                                 direction={'row'}
                                                 alignItems={'center'}

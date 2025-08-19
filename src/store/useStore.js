@@ -1,5 +1,6 @@
 // store.js
 import { create } from 'zustand';
+import { getChannels } from "../api/channelsApi";
 
 const useStore = create((set) => ({
     formData: {
@@ -13,21 +14,17 @@ const useStore = create((set) => ({
     }),
 
     // 表單邏輯
-    handleResetForm: (data = null) => set(state => {
+    handleResetForm: (data = null) => {
         const channel = data ? data.channel : '';
         const users = data ? data.users : [];
 
-        console.log(data);
-
-
-        return {
-            ...state,
+        set({
             formData: {
                 channel,
                 users,
             }
-        }
-    }),
+        })
+    },
     handleAddUser: () => set((state) => {
 
         if (state.formData.users.length + 1 >= 6) {
@@ -43,21 +40,17 @@ const useStore = create((set) => ({
         }
     }),
     handleUpdateUserName: ({ index, name }) => set(state => {
-        console.log(index, name);
         const updateUsers = [...state.formData.users];
         updateUsers[index].name = name;
 
         return {
-            ...state,
             formData: {
                 ...state.formData,
                 users: updateUsers,
             }
         }
-
     }),
     handleUpdateChannel: (channel) => set(state => ({
-        ...state,
         formData: {
             ...state.formData,
             channel,
@@ -65,26 +58,16 @@ const useStore = create((set) => ({
     })),
     handleSetOwner: (index) => set((state) => {
         // 把所有使用者的擁有權改成false
-        const allUsersToFalse = state.formData.users.map(user => ({
+        const updateUsers = state.formData.users.map((user, i) => ({
             ...user,
-            isOwner: false,
+            isOwner: i === index ? true : false,
         }))
 
-        // 取出需要更改的對象
-        const userToUpdate = allUsersToFalse[index];
-        const updateUser = {
-            ...userToUpdate,
-            isOwner: true
-        };
-
-        // 再將對象對應回去
-        allUsersToFalse[index] = updateUser;
 
         return {
-            ...state,
             formData: {
                 ...state.formData,
-                users: allUsersToFalse,
+                users: updateUsers,
             }
         }
     }),
@@ -95,13 +78,24 @@ const useStore = create((set) => ({
         users.splice(index, 1);
 
         return {
-            ...state,
             formData: {
                 ...state.formData,
                 users
             }
         }
     }),
+
+    // API狀態
+    channels: [],
+    isLoading: false,
+    fetchChannel: async () => {
+        set({ loading: true });
+        const channelsData = await getChannels();
+        set({
+            channels: channelsData,
+            isLoading: false
+        });
+    },
 }));
 
 export default useStore;

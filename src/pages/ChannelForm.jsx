@@ -3,6 +3,9 @@ import { Box, Stack, Typography, IconButton, Button, Modal, TextField } from '@m
 import { useParams, useNavigate, useLocation, useMatch } from 'react-router-dom';
 import useStore from "../store/useStore.js";
 
+// 資料庫
+import { addChannels, updateChannel, getChannel } from '../api/channelsApi.js';
+
 // ICON
 import FlagIcon from '@mui/icons-material/Flag';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,7 +14,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 function ChannelForm() {
     const [open, setOpen] = useState(false);
-    const isEditMode = Boolean(useMatch('/edit/:channelId'));
+    const [originData, setOriginData] = useState('');
+    const navigate = useNavigate();
 
     // 表單動作
     const formData = useStore((state) => state.formData);
@@ -22,43 +26,32 @@ function ChannelForm() {
     const handleUpdateUserName = useStore((state) => state.handleUpdateUserName);
     const handleUpdateChannel = useStore((state) => state.handleUpdateChannel);
 
+    // API
+    const fetchChannel = useStore((state) => state.fetchChannel);
+
     // 偵測頁面變化
+    const isEditMode = Boolean(useMatch('/edit/:channelId'));
     const { channelId } = useParams();
-    const navigate = useNavigate();
-    const matchEditMode = useMatch('/edit/:channelId')
     const location = useLocation();
 
     useEffect(() => {
+        // 拿單一頻道資料
+        const fetchChannel = async () => {
+            const channelData = await getChannel(channelId);
+            console.log('單一頻道資料', channelData);
+
+            // const test = JSON.parse(JSON.stringify(channelData));
+            setOriginData(JSON.parse(JSON.stringify(channelData)));
+            handleResetForm({
+                channel: Number(channelData.channel),
+                users: channelData.users
+            });
+        }
+
         if (location.pathname === '/add') {
-            console.log('openAdd');
             setOpen(true);
         } else if (isEditMode) {
-            console.log('openEdit');
-
-            // GETAPI 拿回的資料
-            const users = [
-                {
-                    "name": "肩膀重重的",
-                    "isOwner": false
-                },
-                {
-                    "name": "肩膀重重的A",
-                    "isOwner": true
-                },
-                {
-                    "name": "肩膀重重的B",
-                    "isOwner": false
-                },
-                {
-                    "name": "肩膀重重的C",
-                    "isOwner": false
-                }
-            ];
-
-            const channel = 123
-
-            handleResetForm({ channel, users });
-
+            fetchChannel();
             setOpen(true);
         } else {
             navigate('/')
@@ -74,11 +67,67 @@ function ChannelForm() {
         navigate('/');
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault(); 
+    const hasChanges = () => {
+        console.log('原始資料', originData);
+        console.log('修改後的資料', formData);
 
-        console.log('表單送出',formData);
-    }
+        // 判斷頻道
+        if (originData.channel !== formData.channel) return true;
+        // 判斷長度
+        if (formData.users.length !== originData.users.length) return true;
+        ;
+
+        // 比較每一個值
+        for (let i = 0; i < formData.users.length; i++) {
+            const oldUser = originData.users[i];
+            const newUser = formData.users[i];
+
+            if (oldUser.name !== newUser.name || oldUser.isOwner !== newUser.isOwner) {
+                return true
+            };
+        };
+        return false;
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (location.pathname === '/add') {
+            await addChannels(formData);
+            fetchChannel();
+            handleClose();
+            return;
+        } else if (isEditMode && channelId) {
+            try {
+                if (hasChanges()) {
+                    // alert('資料被更動。');
+                    const updatedFields = {};
+
+                    if (originData.channel !== formData.channel) {
+                        updatedFields.channel = formData.channel
+                    };
+
+                    if (JSON.stringify(originData.users) !== JSON.stringify(formData.users)) {
+                        updatedFields.users = formData.users;
+                    }
+
+                    console.log('更改的資料', updatedFields);
+
+                    updateChannel(channelId, updatedFields);
+
+                    handleClose();
+                    fetchChannel();
+                    return;
+                } else {
+                    // console.log('資料沒有更改');
+                    handleClose();
+                    return;
+                }
+            } catch (e) {
+                alert('更新資料發生錯誤', e);
+            }
+        }
+    };
 
     return (
         <Modal open={open} onClose={handleClose} >
