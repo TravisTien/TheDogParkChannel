@@ -64,3 +64,6 @@ npm run preview
 Firebase 身份驗證（Auth）
 
 更可愛的 DogPark 主題化 UI
+
+## 📸 Screenshot
+![Screenshot](./assets/screenshot.png.png)
