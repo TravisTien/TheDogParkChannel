@@ -28,7 +28,7 @@ export const getChannel = async (id) => {
                 id: docSnap.id,
                 ...docSnap.data(),
             }
-            console.log('單一頻道資料', channelData);
+            // console.log('單一頻道資料', channelData);
             return channelData;
         }
     } catch (error) {
@@ -51,10 +51,9 @@ export const updateChannel = async (id, updateFiedls) => {
     try {
         const channelRef = doc(db, 'channels', id);
         await updateDoc(channelRef, updateFiedls);
-        console.log('文件更新成功')
+        // console.log('文件更新成功')
     } catch (error) {
         console.erroe('文件更新失敗', error)
-
     }
 };
 
@@ -62,7 +61,7 @@ export const deleteChannel = async (id) => {
     try {
         const docRef = doc(db, 'channels', id);
         await deleteDoc(docRef);
-        console.log('刪除頻道成功');
+        // console.log('刪除頻道成功');
     } catch (error) {
         console.error('刪除頻道出現伺服器錯誤', error)
     }

@@ -1,8 +1,6 @@
 import { Box } from "@mui/material";
 
 const IconMoon = ({ color, fillColor, ...props }) => {
-    console.log(fillColor);
-
     return (
         <Box component={"svg"} viewBox="0 0 22 22" {...props}>
             <g clip-path="url(#a)">

@@ -47,6 +47,7 @@ function ChannelListCD() {
             // console.log(editChannelId);
 
             deleteChannel(editChannelId);
+            setAnchorEl(null);
             fetchChannel();
         }
     };
