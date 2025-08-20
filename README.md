@@ -66,4 +66,4 @@ Firebase 身份驗證（Auth）
 更可愛的 DogPark 主題化 UI
 
 ## 📸 Screenshot
-![Screenshot](./src/assets/screenshot.png.png)
+![Screenshot](./src/assets/screenshot.png)
