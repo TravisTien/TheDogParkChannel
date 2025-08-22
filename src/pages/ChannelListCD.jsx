@@ -374,7 +374,7 @@ function ChannelListCD() {
 
                                         {/* Zone */}
                                         <Typography
-                                            color="info"
+                                            color="#f35a53"
                                             fontSize={12}
                                             sx={{
                                                 border: 1,
