@@ -1,22 +1,35 @@
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, IconButton, Button, Grid, Popover } from '@mui/material'
+import { Box, Stack, Typography, IconButton, Button, Grid, Popover, Modal } from '@mui/material'
 import { ThemeProvider } from '@emotion/react';
 import { lightTheme, darkTheme } from "../theme.js";
 import { useNavigate } from 'react-router-dom';
 
+
+// API
 import { deleteChannel } from "../api/channelsApi.js";
 
+// 自訂義組件
 import ChannelForm from "./ChannelForm.jsx";
 import useStore from "../store/useStore.js";
+import { zones } from "../utils/constants.js";
 
-import LightModeIcon from '@mui/icons-material/LightMode';
-import IconSun from "../assets/icons/IconSun.jsx";
-import IconMoon from "../assets/icons/IconMoon.jsx";
+// ICON
+import MapIcon from '@mui/icons-material/Map';
 import PetsIcon from '@mui/icons-material/Pets';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FlagIcon from '@mui/icons-material/Flag';
+import SunnyIcon from '@mui/icons-material/Sunny';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 function ChannelListCD() {
+    const [mapOpen, setMapOpen] = useState(false);
+    const handleMapOpen = () => {
+        setMapOpen(true);
+    };
+    const handleMapClose = () => {
+        setMapOpen(false);
+    };
+
     const [anchorEl, setAnchorEl] = useState(null);
     const [editChannelId, setEditChannelId] = useState('');
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -26,10 +39,12 @@ function ChannelListCD() {
     const fetchChannel = useStore((state) => state.fetchChannel);
     const isLoading = useStore((state) => state.isLoading);
     const channels = useStore((state) => state.channels);
+    const zone = useStore((state) => state.zone);
+    const handleSetZone = useStore((state) => state.handleSetZone);
 
     useEffect(() => {
-        fetchChannel();
-    }, [fetchChannel])
+        fetchChannel(zone);
+    }, [fetchChannel, zone])
 
     const handleToggle = () => {
         setIsDarkMode(!isDarkMode);
@@ -38,6 +53,8 @@ function ChannelListCD() {
         setAnchorEl(null);
     }
     const handlePopoverClick = (event, id) => {
+        console.log(id);
+        
         setAnchorEl(event.currentTarget);
         setEditChannelId(id);
     };
@@ -48,9 +65,15 @@ function ChannelListCD() {
 
             deleteChannel(editChannelId);
             setAnchorEl(null);
-            fetchChannel();
+            fetchChannel(zone);
         }
     };
+
+    const handleChangeZone = (zone) => {
+        handleSetZone(zone);
+        handleMapClose();
+    }
+
     const open = Boolean(anchorEl);
 
     return (
@@ -88,8 +111,58 @@ function ChannelListCD() {
                 </Stack>
             </Popover>
 
+            {/* ZoneList */}
+            <Modal
+                open={mapOpen}
+                onClose={handleMapClose}
+            >
+
+                <Box
+                    sx={{
+                        height: "auto",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 400,
+                        bgcolor: 'paper.main',
+                        boxShadow: 24,
+                        border: 1,
+                        borderColor: 'text.secondary',
+                        p: 4,
+                        borderRadius: 5
+                    }}
+                >
+                    <Typography color="text.white" fontSize={16} marginBottom={3} letterSpacing={1}>選擇地圖</Typography>
+                    <Grid
+                        width={'100%'}
+                        container
+                        spacing={1}
+                    >
+                        {zones.map(zoneName => (
+                            <Grid size={3}>
+                                <Button
+                                    onClick={() => { handleChangeZone(zoneName) }}
+                                    color={zone === zoneName ? 'primary' : 'info'}
+                                    sx={{
+                                        width: '100%',
+                                        border: 2
+                                    }}
+                                    variant='outlined'
+                                >
+                                    <Typography color="text">{zoneName}</Typography>
+                                </Button>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Box>
+            </Modal>
+
             {/* Main */}
-            <Box maxWidth={"100vw"} minHeight={"100vh"} paddingY={5}
+            <Box
+                maxWidth={"100vw"}
+                minHeight={"100vh"}
+                paddingY={5}
                 sx={{
                     background: (theme) => theme.palette.gradients.primary,
                     paddingX: {
@@ -100,7 +173,12 @@ function ChannelListCD() {
                 }}
             >
                 {/* NavBar */}
-                <Stack width={"100%"} height={75} direction={"row"} justifyContent={"space-between"} alignItems={"center"}
+                <Stack
+                    width={"100%"}
+                    height={75}
+                    direction={"row"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
                     paddingY={1} paddingX={2} marginBottom={5}
                     sx={{
                         backgroundColor: "paper.main",
@@ -118,37 +196,46 @@ function ChannelListCD() {
                         <Typography fontSize={24} color="text.white" fontWeight={800}>Dog Park</Typography>
                     </Stack>
 
-                    {/* 切換模式 */}
-                    {theme.palette.mode === "light"
-                        ? <IconMoon height="80%" width="auto" onClick={handleToggle}
-                            color={theme.palette.text.default}
-                            fillColor={theme.palette.button.inactive}
+                    <Stack
+                        spacing={1}
+                        direction={'row'}
+                        justifyContent={'start'}
+                        height={'100%'}
+                        paddingY={1}
+                    >
+                        {/* 地圖 */}
+                        <Button
+                            onClick={handleMapOpen}
+                            variant='contained'
+                            color={'info'}
                             sx={{
-                                // border: 1,
-                                bgcolor: "button.inactive",
-                                borderRadius: 2,
-                                cursor: "pointer",
-                                padding: 1.5,
-                                // boxSizing: "content-box",
-                                ":hover": {
-                                    bgcolor: "button.hover"
-                                },
+                                border: 2,
+                                height: '100%',
+                                minWidth: 0,
+                                aspectRatio: '1/1'
                             }}
-                        />
-                        : <IconSun height="80%" width="auto" onClick={handleToggle}
-                            color={theme.palette.text.default}
-                            fillColor={theme.palette.button.inactive}
+                        >
+                            <MapIcon />
+                        </Button>
+
+                        {/* 模式切換 */}
+                        <Button
+                            variant='contained'
+                            color={'info'}
                             sx={{
-                                bgcolor: "button.inactive",
-                                borderRadius: 2,
-                                cursor: "pointer",
-                                padding: 1.5,
-                                ":hover": {
-                                    bgcolor: "button.hover"
-                                },
+                                border: 2,
+                                height: '100%',
+                                minWidth: 0,
+                                aspectRatio: '1/1'
                             }}
-                        />
-                    }
+                        >
+                            {/* 切換模式 */}
+                            {theme.palette.mode === "light"
+                                ? <DarkModeIcon onClick={handleToggle} />
+                                : <SunnyIcon onClick={handleToggle} />
+                            }
+                        </Button>
+                    </Stack>
                 </Stack>
 
                 {/* 功能列 */}
@@ -173,7 +260,7 @@ function ChannelListCD() {
                             }
                         }}
                     >
-                        地圖名稱 : CD
+                        地圖名稱 : {zone}
                     </Typography>
 
                     {/* 新增頻道 */}
@@ -239,7 +326,7 @@ function ChannelListCD() {
                         </Grid>
                     )}
 
-                    {channels.map(({ channel, users, id }) => (
+                    {channels.map(({ channel, users, id, zone }) => (
                         <Grid
                             key={id}
                             size={{ xs: 12, sm: 6, md: 4 }}
@@ -269,15 +356,36 @@ function ChannelListCD() {
                                         borderColor: 'divider'
                                     }}
                                 >
-                                    {/* 頻道 */}
-                                    <Typography
-                                        fontSize={16}
-                                        letterSpacing={2}
-                                        fontWeight={700}
-                                        color="text.default"
+                                    <Stack
+                                        direction={"row"}
+                                        justifyContent={"start"}
+                                        alignItems={"center"}
+                                        spacing={1}
                                     >
-                                        頻道:{channel}
-                                    </Typography>
+                                        {/* 頻道 */}
+                                        <Typography
+                                            fontSize={16}
+                                            letterSpacing={2}
+                                            fontWeight={700}
+                                            color="text.default"
+                                        >
+                                            頻道:{channel}
+                                        </Typography>
+
+                                        {/* Zone */}
+                                        <Typography
+                                            color="info"
+                                            fontSize={12}
+                                            sx={{
+                                                border: 1,
+                                                paddingY: 0.5,
+                                                paddingX: 1,
+                                                borderRadius: 3
+                                            }}
+                                        >
+                                            {zone}
+                                        </Typography>
+                                    </Stack>
 
                                     {/* 按鈕 */}
                                     <IconButton onClick={(event) => { handlePopoverClick(event, id) }}>
@@ -319,10 +427,9 @@ function ChannelListCD() {
                         </Grid>
                     ))}
                 </Grid>
-
                 <ChannelForm />
             </Box >
-        </ThemeProvider>
+        </ThemeProvider >
     )
 }
 

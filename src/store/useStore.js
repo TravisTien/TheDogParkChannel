@@ -5,8 +5,12 @@ import { getChannels } from "../api/channelsApi";
 const useStore = create((set) => ({
     formData: {
         channel: '',
+        zone: '',
         users: [],
     },
+
+    zone: 'CD',
+    handleSetZone: (value) => { set({ zone: value }) },
 
     createUser: () => ({
         name: '',
@@ -14,17 +18,19 @@ const useStore = create((set) => ({
     }),
 
     // 表單邏輯
-    handleResetForm: (data = null) => {
+    handleResetForm: (data = null, currentZone = null) => set(state => {
         const channel = data ? data.channel : '';
         const users = data ? data.users : [];
+        const zone = data ? data.zone : (currentZone !== null ? currentZone : state.zone);
 
-        set({
+        return {
             formData: {
                 channel,
                 users,
+                zone
             }
-        })
-    },
+        }
+    }),
     handleAddUser: () => set((state) => {
 
         if (state.formData.users.length + 1 >= 6) {
@@ -84,13 +90,19 @@ const useStore = create((set) => ({
             }
         }
     }),
+    handleChangeZone: (zone) => set(state => ({
+        formData: {
+            ...state.formData,
+            zone
+        }
+    })),
 
     // API狀態
     channels: [],
     isLoading: false,
-    fetchChannel: async () => {
+    fetchChannel: async (currentZone) => {
         set({ loading: true });
-        const channelsData = await getChannels();
+        const channelsData = await getChannels(currentZone);
         set({
             channels: channelsData,
             isLoading: false

@@ -57,6 +57,9 @@ export const darkTheme = createTheme({
         },
         primary: {
             main: "#f35a53"
+        },
+        info:{
+            main:'#525868'
         }
     },
 });

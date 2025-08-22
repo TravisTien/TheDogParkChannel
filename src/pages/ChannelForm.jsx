@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Box, Stack, Typography, IconButton, Button, Modal, TextField, Popover } from '@mui/material'
+import { Box, Stack, Typography, IconButton, Button, Modal, TextField, Popover, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { useParams, useNavigate, useLocation, useMatch } from 'react-router-dom';
 import useStore from "../store/useStore.js";
 import * as yup from 'yup';
 
-// 資料庫
+// API
 import { addChannels, updateChannel, getChannel } from '../api/channelsApi.js';
+
+// 自訂義組件
+import { zones } from "../utils/constants.js";
 
 // Icon
 import FlagIcon from '@mui/icons-material/Flag';
@@ -39,6 +42,8 @@ function ChannelForm() {
     const handleDeleteOwner = useStore((state) => state.handleDeleteOwner);
     const handleUpdateUserName = useStore((state) => state.handleUpdateUserName);
     const handleUpdateChannel = useStore((state) => state.handleUpdateChannel);
+    const handleChangeZone = useStore((state) => state.handleChangeZone);
+    const zone = useStore((state) => state.zone);
 
     // API
     const fetchChannel = useStore((state) => state.fetchChannel);
@@ -51,24 +56,26 @@ function ChannelForm() {
     // Yup設定
     const [errors, setErrors] = useState({});
     const channelSchema = yup.object().shape({
-        channel: yup.number().required('必須輸入頻道').max(6000,'頻道不能超過6000').typeError('必須輸入頻道')
+        channel: yup.number().required('必須輸入頻道').max(6000, '頻道不能超過6000').typeError('必須輸入頻道')
     });
 
     useEffect(() => {
         // 拿單一頻道資料
         const fetchChannel = async () => {
             const channelData = await getChannel(channelId);
-            // console.log('單一頻道資料', channelData);
+            console.log('單一頻道資料', channelData);
 
             // const test = JSON.parse(JSON.stringify(channelData));
             setOriginData(JSON.parse(JSON.stringify(channelData)));
             handleResetForm({
                 channel: Number(channelData.channel),
-                users: channelData.users
+                users: channelData.users,
+                zone: channelData.zone,
             });
         }
 
         if (location.pathname === '/add') {
+            handleResetForm(null, zone)
             setOpen(true);
         } else if (isEditMode) {
             fetchChannel();
@@ -82,7 +89,7 @@ function ChannelForm() {
         setOpen(true)
     };
     const handleClose = () => {
-        handleResetForm();
+        handleResetForm(null);
         setErrors({});
         setOpen(false);
         navigate('/');
@@ -96,9 +103,10 @@ function ChannelForm() {
         if (originData.channel !== formData.channel) return true;
         // 判斷長度
         if (formData.users.length !== originData.users.length) return true;
-        ;
 
-        // 比較每一個值
+        if (formData.zone !== originData.zone) return true;
+
+        // 比較玩家名稱
         for (let i = 0; i < formData.users.length; i++) {
             const oldUser = originData.users[i];
             const newUser = formData.users[i];
@@ -113,24 +121,27 @@ function ChannelForm() {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        // 表單驗證
         try {
             channelSchema.validateSync(formData, { abortEarly: false });
             setErrors({});
         } catch (err) {
             // console.error('驗證失敗', err);
             const newError = {};
+
+            // 取得錯誤訊息
             err.inner.forEach(error => {
                 newError[error.path] = error.message
             })
-            
+
             setErrors(newError);
             return
         }
 
         if (location.pathname === '/add') {
-
             await addChannels(formData);
-            fetchChannel();
+
+            fetchChannel(zone);
             handleClose();
             return;
         } else if (isEditMode && channelId) {
@@ -143,6 +154,10 @@ function ChannelForm() {
                         updatedFields.channel = formData.channel
                     };
 
+                    if (originData.zone !== formData.zone) {
+                        updatedFields.zone = formData.zone
+                    };
+
                     if (JSON.stringify(originData.users) !== JSON.stringify(formData.users)) {
                         updatedFields.users = formData.users;
                     }
@@ -152,7 +167,7 @@ function ChannelForm() {
                     updateChannel(channelId, updatedFields);
 
                     handleClose();
-                    fetchChannel();
+                    fetchChannel(zone);
                     return;
                 } else {
                     // console.log('資料沒有更改');
@@ -209,16 +224,40 @@ function ChannelForm() {
 
                 {/* 表單 */}
                 <Box component={'form'} onSubmit={handleSubmit}>
-                    {/* 頻道 */}
-                    <TextField
+                    <Stack
                         fullWidth
-                        placeholder='輸入頻道'
-                        type='number'
-                        value={formData.channel}
-                        error={!!errors.channel}
-                        helperText={errors.channel}
-                        onChange={(event) => { handleUpdateChannel(event.target.value) }}
-                    />
+                        direction={'column'}
+                        spacing={2}
+                    >
+                        {/* 頻道 */}
+                        <TextField
+                            fullWidth
+                            placeholder='輸入頻道'
+                            type='number'
+                            value={formData.channel}
+                            error={!!errors.channel}
+                            helperText={errors.channel}
+                            onChange={(event) => { handleUpdateChannel(event.target.value) }}
+                        />
+
+                        {/* Zone */}
+                        <FormControl fullWidth >
+                            <InputLabel id='zone-label'>
+                                選擇地圖
+                            </InputLabel>
+                            <Select
+                                labelId='zone-label'
+                                label='選擇地圖'
+                                value={formData.zone}
+                                onChange={(event) => { handleChangeZone(event.target.value) }}
+                            >
+
+                                {zones.map(zone => (
+                                    <MenuItem key={zone} value={zone}>{zone}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Stack>
 
                     {/* 玩家 */}
                     <Stack

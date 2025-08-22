@@ -1,26 +1,60 @@
 import { db } from '../firebase';
-import { doc, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, where, query } from 'firebase/firestore';
 
-export const getChannels = async () => {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'channels'));
-        const channels = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
+// 取得當前狀態
+const prefix = import.meta.env.VITE_CHANNELS_COLLECTION;
+console.log('prefix', typeof (prefix));
 
-        // console.log('取得所有頻道資料', channels);
+export const getChannels = async (currentZone = null) => {
+    // 拿取全部資料
+    if (!currentZone) {
+        try {
+            const querySnapshot = await getDocs(collection(db, prefix));
+            const channels = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
 
-        return channels;
-    } catch (e) {
-        console.error('取得文件時出錯', e);
-        return [];
+            // console.log('所有頻道資料:', channels);
+            return channels;
+        } catch (e) {
+            console.error('取得所有頻道資料時出錯', e);
+            return [];
+        }
+    }
+    // 拿取當前區域的資料
+    else if (currentZone) {
+        // console.log('當前區域為',currentZone);
+
+        // 集合參考
+        const collectRef = collection(db, prefix);
+        // 建立搜尋器
+        const q = query(collectRef, where('zone', '==', currentZone));
+        try {
+            // 執行搜尋
+            const querySnapshot = await getDocs(q);
+            const channels = [];
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach(doc => {
+                    const data = {
+                        ...doc.data(),
+                        id: doc.id
+                    }
+
+                    channels.push(data)
+                });
+            }
+            return channels;
+        } catch (e) {
+            console.error(`取得${currentZone}時出錯:`, e);
+            return [];
+        }
     }
 };
 
 export const getChannel = async (id) => {
     try {
-        const channelRef = doc(db, 'channels', id);
+        const channelRef = doc(db, prefix, id);
         const docSnap = await getDoc(channelRef);
 
         if (docSnap.exists()) {
@@ -38,7 +72,7 @@ export const getChannel = async (id) => {
 
 export const addChannels = async (channelData) => {
     try {
-        const docRef = await addDoc(collection(db, 'channels'), channelData);
+        const docRef = await addDoc(collection(db, prefix), channelData);
         console.log('頻道新增成功，ID:', docRef.channel);
         return docRef.id;
     } catch (error) {
@@ -49,7 +83,7 @@ export const addChannels = async (channelData) => {
 
 export const updateChannel = async (id, updateFiedls) => {
     try {
-        const channelRef = doc(db, 'channels', id);
+        const channelRef = doc(db, prefix, id);
         await updateDoc(channelRef, updateFiedls);
         // console.log('文件更新成功')
     } catch (error) {
@@ -59,7 +93,7 @@ export const updateChannel = async (id, updateFiedls) => {
 
 export const deleteChannel = async (id) => {
     try {
-        const docRef = doc(db, 'channels', id);
+        const docRef = doc(db, prefix, id);
         await deleteDoc(docRef);
         // console.log('刪除頻道成功');
     } catch (error) {
