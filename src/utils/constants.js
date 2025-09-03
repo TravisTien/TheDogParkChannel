@@ -1,1 +1,1 @@
-export const zones = ['CD','PW',];
+export const zones = ['CD','PW','鯊魚','魚屋'];

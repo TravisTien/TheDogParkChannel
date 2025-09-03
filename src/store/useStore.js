@@ -25,7 +25,6 @@ const useStore = create((set) => ({
         const users = data ? data.users : [];
         const hasHolySymbol = data ? data.hasHolySymbol : false;
         const zone = data ? data.zone : (currentZone !== null ? currentZone : state.zone);
-        const queue = data ? data.queue : [];
 
         return {
             formData: {
@@ -33,7 +32,6 @@ const useStore = create((set) => ({
                 users,
                 zone,
                 hasHolySymbol,
-                queue
             }
         }
     }),
