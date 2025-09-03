@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { doc, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, where, query } from 'firebase/firestore';
+import { doc, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, where, query, serverTimestamp } from 'firebase/firestore';
 
 // 取得當前狀態
 const prefix = import.meta.env.VITE_CHANNELS_COLLECTION;
@@ -33,6 +33,7 @@ export const getChannels = async (currentZone = null) => {
         try {
             // 執行搜尋
             const querySnapshot = await getDocs(q);
+
             const channels = [];
             if (!querySnapshot.empty) {
                 querySnapshot.forEach(doc => {
@@ -44,6 +45,9 @@ export const getChannels = async (currentZone = null) => {
                     channels.push(data)
                 });
             }
+            console.log(`取得${currentZone}頻道資料:`, channels);
+
+
             return channels;
         } catch (e) {
             console.error(`取得${currentZone}時出錯:`, e);
@@ -72,7 +76,10 @@ export const getChannel = async (id) => {
 
 export const addChannels = async (channelData) => {
     try {
-        const docRef = await addDoc(collection(db, prefix), channelData);
+        const newData = { ...channelData };
+        newData.updatedAt = serverTimestamp();
+
+        const docRef = await addDoc(collection(db, prefix), newData);
         console.log('頻道新增成功，ID:', docRef.channel);
         return docRef.id;
     } catch (error) {
@@ -83,11 +90,16 @@ export const addChannels = async (channelData) => {
 
 export const updateChannel = async (id, updateFiedls) => {
     try {
+        // console.log(updateFiedls);
+
+        const updateData = { ...updateFiedls };
+        updateData.updatedAt = serverTimestamp();
+
         const channelRef = doc(db, prefix, id);
-        await updateDoc(channelRef, updateFiedls);
-        // console.log('文件更新成功')
+        await updateDoc(channelRef, updateData);
+        console.log('文件更新成功')
     } catch (error) {
-        console.erroe('文件更新失敗', error)
+        console.error('文件更新失敗', error)
     }
 };
 

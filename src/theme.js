@@ -12,7 +12,8 @@ export const lightTheme = createTheme({
             dark: "#eeeeee"
         },
         paper: {
-            main: "#fcfdff"
+            main: "#fcfdff",
+            border: '#6E6E6E',
         },
         button: {
             inactive: "#eeeeee",
@@ -21,7 +22,11 @@ export const lightTheme = createTheme({
         },
         text: {
             default: "#00092e",
-            secondary: "#93969d",
+            secondary: "#6E6E6E",
+        },
+        reverseText: {
+            default: "#fcfdff",
+            background: "#00092e"
         },
         gradients: {
             primary: "linear-gradient(180deg, #EBF2FC 0%, #EEF8F9 100%)",
@@ -33,14 +38,12 @@ export const lightTheme = createTheme({
 export const darkTheme = createTheme({
     palette: {
         mode: 'dark',
-        black: "#29092e",
-        backgroundColor: {
-            main: "#ecf5fc",
-            light: "#fcfdff",
-            dark: "#eeeeee"
+        theme: {
+            black: "#29092e",
         },
         paper: {
-            main: '#1f2535'
+            main: '#1f2535',
+            border: '#9E9E9E',
         },
         button: {
             inactive: "#535867",
@@ -52,14 +55,18 @@ export const darkTheme = createTheme({
             secondary: "#abb2bd",
             white: '#ffffff',
         },
+        reverseText: {
+            default: "#29092e",
+            background: "#ffffff"
+        },
         gradients: {
             primary: "linear-gradient(180deg, #040918 0%, #091540 100%)",
         },
         primary: {
             main: "#f35a53"
         },
-        info:{
-            main:'#525868'
+        info: {
+            main: '#525868'
         }
     },
 });

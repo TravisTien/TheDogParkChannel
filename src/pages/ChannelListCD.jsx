@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, IconButton, Button, Grid, Popover, Modal, TextField } from '@mui/material'
+import { Box, Stack, Typography, IconButton, Button, Grid, Popover, Modal } from '@mui/material'
 import { ThemeProvider } from '@emotion/react';
 import { lightTheme, darkTheme } from "../theme.js";
 import { useNavigate } from 'react-router-dom';
-
 
 // API
 import { deleteChannel } from "../api/channelsApi.js";
@@ -76,6 +75,28 @@ function ChannelListCD() {
         handleMapClose();
     }
 
+    console.log('test',channels);
+    
+
+    const switchTime = (firestoreTimestamp) => {
+        if (!firestoreTimestamp) return '剛剛';
+        const date = new Date(firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6);
+
+        const now = new Date();
+
+        // 計算時間差（以毫秒為單位）
+        const diffInMilliseconds = now - date;
+
+        // 將時間差轉換為分鐘
+        const diffInMinutes = Math.floor(diffInMilliseconds / 1000 / 60);
+
+        if (diffInMinutes < 1) return '剛剛';
+
+        // console.log(`${diffInMinutes} 分鐘以前`);
+
+        return `${diffInMinutes} 分鐘以前`;
+    }
+
     const open = Boolean(anchorEl);
 
     return (
@@ -126,7 +147,6 @@ function ChannelListCD() {
                 open={mapOpen}
                 onClose={handleMapClose}
             >
-
                 <Box
                     sx={{
                         height: "auto",
@@ -143,24 +163,34 @@ function ChannelListCD() {
                         borderRadius: 5
                     }}
                 >
-                    <Typography color="text.white" fontSize={16} marginBottom={3} letterSpacing={1}>選擇地圖</Typography>
+                    <Typography
+                        color="text.default"
+                        fontWeight={500}
+                        fontSize={16}
+                        marginBottom={3}
+                        letterSpacing={1}
+                    >
+                        選擇地圖
+                    </Typography>
                     <Grid
                         width={'100%'}
                         container
                         spacing={1}
                     >
-                        {zones.map(zoneName => (
-                            <Grid size={3}>
+                        {zones.map((zoneName, index) => (
+                            <Grid size={3} key={`zone-id${index}`}>
                                 <Button
                                     onClick={() => { handleChangeZone(zoneName) }}
-                                    color={zone === zoneName ? 'primary' : 'info'}
                                     sx={{
+                                        color: zone === zoneName ? 'primary' : 'text.secondary',
                                         width: '100%',
                                         border: 2
                                     }}
                                     variant='outlined'
                                 >
-                                    <Typography color="text">{zoneName}</Typography>
+                                    <Typography>
+                                        {zoneName}
+                                    </Typography>
                                 </Button>
                             </Grid>
                         ))}
@@ -217,12 +247,18 @@ function ChannelListCD() {
                         <Button
                             onClick={handleMapOpen}
                             variant='contained'
-                            color={'info'}
                             sx={{
+                                color: 'paper.border',
+                                bgcolor: 'paper.main',
                                 border: 2,
                                 height: '100%',
                                 minWidth: 0,
-                                aspectRatio: '1/1'
+                                aspectRatio: '1/1',
+
+                                '&:hover': {
+                                    color: 'text.default',
+                                    bgcolor: 'paper.main',
+                                }
                             }}
                         >
                             <MapIcon />
@@ -233,10 +269,17 @@ function ChannelListCD() {
                             variant='contained'
                             color={'info'}
                             sx={{
+                                color: 'paper.border',
+                                bgcolor: 'paper.main',
                                 border: 2,
                                 height: '100%',
                                 minWidth: 0,
-                                aspectRatio: '1/1'
+                                aspectRatio: '1/1',
+
+                                '&:hover': {
+                                    color: 'text.default',
+                                    bgcolor: 'paper.main',
+                                }
                             }}
                         >
                             {/* 切換模式 */}
@@ -336,77 +379,74 @@ function ChannelListCD() {
                         </Grid>
                     )}
 
-                    {channels.map(({ channel, users, id, zone, hasHolySymbol }) => (
+                    {channels.map(({ channel, users, id, zone, hasHolySymbol, updatedAt }) => (
                         <Grid
                             key={id}
-                            size={{ xs: 12, sm: 6, md: 4 }}
+                            size={{ xs: 12, sm: 6, md: 6, lg: 4 }}
                             padding={2}
                             sx={{
                                 backgroundColor: "paper.main",
-                                border: "1px solid hsla(0,0%,100%,.3)",
-                                borderRadius: 4
+                                border: 1,
+                                borderColor: 'paper.border',
+                                borderRadius: 4,
                             }}
                         >
-                            {/* 資訊 */}
                             <Stack
                                 direction={"column"}
                                 alignItems={"start"}
                             >
-                                {/* 頻道/按鈕 */}
+                                {/* 頻道資料 + 按鈕 */}
                                 <Stack
                                     direction={"row"}
-                                    justifyContent={"space-between"}
+                                    justifyContent={"start"}
                                     alignItems={"center"}
-                                    marginBottom={2}
-                                    paddingBottom={1}
-                                    paddingLeft={3}
                                     width={'100%'}
-                                    sx={{
-                                        borderBottom: 1,
-                                        borderColor: 'divider'
-                                    }}
+                                    paddingLeft={1}
                                 >
+                                    {/* 頻道 */}
+                                    <Typography
+                                        fontSize={16}
+                                        letterSpacing={2}
+                                        fontWeight={700}
+                                        color="text.default"
+                                    >
+                                        {channel}頻
+                                    </Typography>
+
+                                    {/* 地圖+花 */}
                                     <Stack
                                         direction={"row"}
-                                        justifyContent={"start"}
                                         alignItems={"center"}
                                         spacing={1}
+                                        sx={{
+                                            marginRight: 'auto',
+                                            marginLeft: 3
+                                        }}
                                     >
-                                        {/* 頻道 */}
-                                        <Typography
-                                            fontSize={16}
-                                            letterSpacing={2}
-                                            fontWeight={700}
-                                            color="text.default"
-                                        >
-                                            頻道:{channel}
-                                        </Typography>
-
                                         {/* Zone */}
                                         <Typography
-                                            color="#f35a53"
                                             fontSize={12}
                                             fontWeight={700}
                                             sx={{
-                                                bgcolor: "text.default",
-                                                color: "black",
+                                                bgcolor: "reverseText.background",
+                                                color: "reverseText.default",
                                                 border: 1,
                                                 paddingY: 0.5,
                                                 paddingX: 1,
-                                                borderRadius: 3
+                                                borderRadius: 3,
                                             }}
                                         >
                                             {zone}
                                         </Typography>
 
+                                        {/* 是否有七 */}
                                         {hasHolySymbol && (
                                             <FilterVintageIcon
                                                 sx={{
-                                                    color: 'white'
+                                                    color: 'text.default',
                                                 }}
                                             />
                                         )}
-
                                     </Stack>
 
                                     {/* 按鈕 */}
@@ -415,32 +455,55 @@ function ChannelListCD() {
                                     </IconButton>
                                 </Stack>
 
+                                {/* 更新時間 */}
+                                <Typography
+                                    paddingLeft={1}
+                                    fontSize={12}
+                                    width={'100%'}
+                                    color='text.secondary'
+                                    sx={{
+                                        borderBottom: 1,
+                                        borderColor: 'divider',
+                                        paddingBottom: 1,
+                                        marginBottom: 1
+                                    }}
+                                >
+                                    {switchTime(updatedAt)}
+                                </Typography>
+
                                 {/* 成員 */}
                                 <Grid container
                                     width={'100%'}
                                     spacing={1}
+                                    padding={1}
                                     sx={{
-                                        border: 0,
+                                        // border: 1,
                                     }}
                                 >
                                     {users.map(({ name, isOwner }, index) => (
-                                        <Grid key={`userIndex:${index}`} size={6}>
+                                        <Grid key={`userIndex:${index}`} size={6} sx={{ border: 0 }}>
                                             <Stack
                                                 direction={'row'}
                                                 alignItems={'center'}
                                                 height={'100%'}
                                                 spacing={0.1}
+
+                                                sx={{
+                                                    boxShadow: 2,
+                                                    borderRadius: 2,
+                                                    border: 1,
+                                                    borderColor: 'divider',
+                                                }}
                                             >
-                                                <Box width={'15%'} height={'100%'} color={'primary.main'} >
-                                                    {isOwner && <FlagIcon />}
-                                                </Box>
                                                 <Typography
                                                     fontSize={14}
                                                     letterSpacing={1}
                                                     color='text.default'
+                                                    padding={1}
                                                 >
                                                     {name}
                                                 </Typography>
+                                                {isOwner && <FlagIcon sx={{ color: '#f35a53' }} fontSize='small' />}
                                             </Stack>
                                         </Grid>
                                     ))}
