@@ -16,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: '/edit/:channelId',
     element: <ChannelListCD />
+  },
+  {
+    path: '/queue/:channelId',
+    element: <ChannelListCD />
   }
 ])
 

@@ -100,3 +100,13 @@ export const deleteChannel = async (id) => {
         console.error('刪除頻道出現伺服器錯誤', error)
     }
 };
+
+export const updateQueue = async (id, updateFiedls) => {
+    try {
+        const channelRef = doc(db, prefix, id);
+        await updateDoc(channelRef, updateFiedls);
+        // console.log('排隊列表更新成功')
+    } catch (error) {
+        // console.erroe('文件更新失敗', error)
+    }
+};

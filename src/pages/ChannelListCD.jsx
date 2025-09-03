@@ -10,6 +10,7 @@ import { deleteChannel } from "../api/channelsApi.js";
 
 // 自訂義組件
 import ChannelForm from "./ChannelForm.jsx";
+import Queue from "./Queue.jsx";
 import useStore from "../store/useStore.js";
 import { zones } from "../utils/constants.js";
 
@@ -427,7 +428,9 @@ function ChannelListCD() {
                         </Grid>
                     ))}
                 </Grid>
+
                 <ChannelForm />
+                <Queue />
             </Box >
         </ThemeProvider >
     )

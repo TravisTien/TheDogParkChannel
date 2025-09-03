@@ -21,13 +21,17 @@ const useStore = create((set) => ({
     handleResetForm: (data = null, currentZone = null) => set(state => {
         const channel = data ? data.channel : '';
         const users = data ? data.users : [];
+        const hasHolySymbol = data ? data.hasHolySymbol : false;
         const zone = data ? data.zone : (currentZone !== null ? currentZone : state.zone);
+        const queue = data ? data.queue : [];
 
         return {
             formData: {
                 channel,
                 users,
-                zone
+                zone,
+                hasHolySymbol,
+                queue
             }
         }
     }),
