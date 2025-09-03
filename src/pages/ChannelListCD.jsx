@@ -75,13 +75,13 @@ function ChannelListCD() {
         handleMapClose();
     }
 
-    console.log('test',channels);
-    
+    console.log('test', channels);
+
 
     const switchTime = (firestoreTimestamp) => {
         if (!firestoreTimestamp) return '剛剛';
-        const date = new Date(firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6);
 
+        const date = new Date(firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6);
         const now = new Date();
 
         // 計算時間差（以毫秒為單位）
@@ -90,10 +90,16 @@ function ChannelListCD() {
         // 將時間差轉換為分鐘
         const diffInMinutes = Math.floor(diffInMilliseconds / 1000 / 60);
 
+        // 如果時間小於 1 分鐘
         if (diffInMinutes < 1) return '剛剛';
 
-        // console.log(`${diffInMinutes} 分鐘以前`);
+        // 如果時間超過 60 分鐘，轉換為小時
+        if (diffInMinutes >= 60) {
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            return `${diffInHours} 小時以前`;
+        }
 
+        // 否則以分鐘為單位
         return `${diffInMinutes} 分鐘以前`;
     }
 
