@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, IconButton, Button, Grid, Popover, Modal } from '@mui/material'
+import { Box, Stack, Typography, IconButton, Button, Grid, Popover, Modal, TextField } from '@mui/material'
 import { ThemeProvider } from '@emotion/react';
 import { lightTheme, darkTheme } from "../theme.js";
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FlagIcon from '@mui/icons-material/Flag';
 import SunnyIcon from '@mui/icons-material/Sunny';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import FilterVintageIcon from '@mui/icons-material/FilterVintage';
 
 function ChannelListCD() {
     const [mapOpen, setMapOpen] = useState(false);
@@ -54,8 +55,8 @@ function ChannelListCD() {
         setAnchorEl(null);
     }
     const handlePopoverClick = (event, id) => {
-        console.log(id);
-        
+        // console.log("channelId",id);
+
         setAnchorEl(event.currentTarget);
         setEditChannelId(id);
     };
@@ -99,7 +100,15 @@ function ChannelListCD() {
                         variant='outlined'
                         onClick={() => { navigate(`/edit/${editChannelId}`) }}
                     >
-                        編輯
+                        編輯頻道
+                    </Button>
+
+                    {/* 排隊狀況 */}
+                    <Button
+                        variant='outlined'
+                        onClick={() => { navigate(`/queue/${editChannelId}`) }}
+                    >
+                        排隊狀況
                     </Button>
 
                     {/* 刪除 */}
@@ -327,7 +336,7 @@ function ChannelListCD() {
                         </Grid>
                     )}
 
-                    {channels.map(({ channel, users, id, zone }) => (
+                    {channels.map(({ channel, users, id, zone, hasHolySymbol }) => (
                         <Grid
                             key={id}
                             size={{ xs: 12, sm: 6, md: 4 }}
@@ -377,7 +386,10 @@ function ChannelListCD() {
                                         <Typography
                                             color="#f35a53"
                                             fontSize={12}
+                                            fontWeight={700}
                                             sx={{
+                                                bgcolor: "text.default",
+                                                color: "black",
                                                 border: 1,
                                                 paddingY: 0.5,
                                                 paddingX: 1,
@@ -386,6 +398,15 @@ function ChannelListCD() {
                                         >
                                             {zone}
                                         </Typography>
+
+                                        {hasHolySymbol && (
+                                            <FilterVintageIcon
+                                                sx={{
+                                                    color: 'white'
+                                                }}
+                                            />
+                                        )}
+
                                     </Stack>
 
                                     {/* 按鈕 */}

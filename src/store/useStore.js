@@ -1,10 +1,12 @@
 // store.js
 import { create } from 'zustand';
 import { getChannels } from "../api/channelsApi";
+import { boolean } from 'yup';
 
 const useStore = create((set) => ({
     formData: {
         channel: '',
+        hasHolySymbol: false,
         zone: '',
         users: [],
     },
@@ -98,6 +100,13 @@ const useStore = create((set) => ({
         formData: {
             ...state.formData,
             zone
+        }
+    })),
+    setIsHolySymbol: (newState) => set(state => ({
+        formData: {
+            ...state.formData,
+            hasHolySymbol: newState == 'true' ? true : false,
+            // hasHolySymbol: newState == 'true' ? true : false,
         }
     })),
 

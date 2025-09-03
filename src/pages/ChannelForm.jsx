@@ -43,6 +43,7 @@ function ChannelForm() {
     const handleUpdateUserName = useStore((state) => state.handleUpdateUserName);
     const handleUpdateChannel = useStore((state) => state.handleUpdateChannel);
     const handleChangeZone = useStore((state) => state.handleChangeZone);
+    const setIsHolySymbol = useStore((state) => state.setIsHolySymbol);
     const zone = useStore((state) => state.zone);
 
     // API
@@ -60,17 +61,16 @@ function ChannelForm() {
     });
 
     useEffect(() => {
-        // 拿單一頻道資料
         const fetchChannel = async () => {
             const channelData = await getChannel(channelId);
             console.log('單一頻道資料', channelData);
 
-            // const test = JSON.parse(JSON.stringify(channelData));
             setOriginData(JSON.parse(JSON.stringify(channelData)));
             handleResetForm({
                 channel: Number(channelData.channel),
                 users: channelData.users,
                 zone: channelData.zone,
+                hasHolySymbol: channelData.hasHolySymbol,
             });
         }
 
@@ -80,8 +80,6 @@ function ChannelForm() {
         } else if (isEditMode) {
             fetchChannel();
             setOpen(true);
-        } else {
-            navigate('/')
         }
     }, [location.pathname])
 
@@ -96,8 +94,8 @@ function ChannelForm() {
     };
 
     const hasChanges = () => {
-        // console.log('原始資料', originData);
-        // console.log('修改後的資料', formData);
+        console.log('原始資料', originData);
+        console.log('修改後的資料', formData);
 
         // 判斷頻道
         if (originData.channel !== formData.channel) return true;
@@ -105,6 +103,8 @@ function ChannelForm() {
         if (formData.users.length !== originData.users.length) return true;
 
         if (formData.zone !== originData.zone) return true;
+
+        if (formData.hasHolySymbol !== originData.hasHolySymbol) return true;
 
         // 比較玩家名稱
         for (let i = 0; i < formData.users.length; i++) {
@@ -115,6 +115,7 @@ function ChannelForm() {
                 return true
             };
         };
+
         return false;
     };
 
@@ -158,11 +159,15 @@ function ChannelForm() {
                         updatedFields.zone = formData.zone
                     };
 
+                    if (originData.hasHolySymbol !== formData.hasHolySymbol) {
+                        updatedFields.hasHolySymbol = formData.hasHolySymbol
+                    };
+
                     if (JSON.stringify(originData.users) !== JSON.stringify(formData.users)) {
                         updatedFields.users = formData.users;
                     }
 
-                    // console.log('更改的資料', updatedFields);
+                    console.log('頻道更新，內容:', updatedFields);
 
                     updateChannel(channelId, updatedFields);
 
@@ -225,12 +230,13 @@ function ChannelForm() {
                 {/* 表單 */}
                 <Box component={'form'} onSubmit={handleSubmit}>
                     <Stack
-                        fullWidth
-                        direction={'column'}
+                        marginTop={3}
+                        direction={'row'}
                         spacing={2}
                     >
                         {/* 頻道 */}
                         <TextField
+                            label="輸入頻道"
                             fullWidth
                             placeholder='輸入頻道'
                             type='number'
@@ -238,10 +244,14 @@ function ChannelForm() {
                             error={!!errors.channel}
                             helperText={errors.channel}
                             onChange={(event) => { handleUpdateChannel(event.target.value) }}
+                            sx={{
+                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)', // 加入陰影
+                                borderRadius: '4px', // 可選，讓邊角更圓滑
+                            }}
                         />
 
                         {/* Zone */}
-                        <FormControl fullWidth >
+                        <FormControl fullWidth>
                             <InputLabel id='zone-label'>
                                 選擇地圖
                             </InputLabel>
@@ -250,6 +260,10 @@ function ChannelForm() {
                                 label='選擇地圖'
                                 value={formData.zone}
                                 onChange={(event) => { handleChangeZone(event.target.value) }}
+                                sx={{
+                                    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)', // 加入陰影
+                                    borderRadius: '4px', // 可選，讓邊角更圓滑
+                                }}
                             >
 
                                 {zones.map(zone => (
@@ -259,7 +273,40 @@ function ChannelForm() {
                         </FormControl>
                     </Stack>
 
-                    {/* 玩家 */}
+                    {/* 祈禱 */}
+                    <Box
+                        sx={{
+                            marginTop: 3
+                        }}
+                    >
+                        <Typography
+                            width={1}
+                            letterSpacing={1}
+                            fontSize={14}
+                            color="text.default"
+                        >
+                            祈禱
+                        </Typography>
+                        <ToggleButtonGroup
+                            fullWidth
+                            onChange={(event) => { setIsHolySymbol(event.target.value); }}
+                            value={formData.hasHolySymbol}
+                            exclusive
+                            sx={{
+                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)', // 加入陰影
+                                borderRadius: '4px', // 可選，讓邊角更圓滑
+                            }}
+                        >
+                            <ToggleButton value={false} >
+                                無
+                            </ToggleButton>
+                            <ToggleButton value={true}>
+                                有祈禱
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+
+                    {/* 玩家列表 */}
                     <Stack
                         direction={'column'}
                         marginTop={5}
@@ -272,52 +319,65 @@ function ChannelForm() {
                         >
                             成員列表
                         </Typography>
-                        {formData.users.map(({ name, isOwner }, index) => (
-                            <Stack
-                                key={`userList-${index}`}
-                                direction={'row'}
-                                justifyContent={'start'}
-                                alignItems={'center'}
-                                height={'100%'}
-                                spacing={2}
-                                sx={{ border: 0 }}
-                            >
-                                <TextField
-                                    placeholder='玩家名稱'
-                                    value={name}
-                                    onChange={(event) => { handleUpdateUserName({ index, name: event.target.value }) }}
-                                    sx={{
-                                        flexGrow: 1
-                                    }}
-                                />
-                                {/* 擁有者icon */}
-                                <IconButton
-                                    onClick={() => { handleSetOwner(index) }}
-                                >
-                                    {isOwner
-                                        ? <FlagIcon color='primary' />
-                                        : <OutlinedFlagIcon />
-                                    }
 
-                                </IconButton>
-
-                                {/* 刪除按鈕 */}
-                                <IconButton color='warning' onClick={() => { handleDeleteOwner(index) }}>
-                                    <CancelIcon />
-                                </IconButton>
-                            </Stack>
-                        )
-                        )}
-
-                        <Button variant='outlined' startIcon={<AddIcon />}
+                        <Stack
+                            direction={'column'}
+                            spacing={1}
                             sx={{
-                                // color: 'text.secondary',
-                                // border: 'text.secondary'
+                                padding: 1,
+                                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)', // 加入陰影
+                                borderRadius: '4px', // 可選，讓邊角更圓滑
                             }}
-                            // color='secondary'
-                            onClick={handleAddUser}>
-                            新增成員
-                        </Button>
+                        >
+                            {formData.users.map(({ name, isOwner }, index) => (
+                                <Stack
+                                    key={`userList-${index}`}
+                                    direction={'row'}
+                                    justifyContent={'start'}
+                                    alignItems={'center'}
+                                    spacing={2}
+                                    sx={{
+                                        borderRadius: 2,
+                                        boxShadow: 2,
+                                    }}
+                                >
+                                    <TextField
+                                        placeholder='玩家名稱'
+                                        value={name}
+                                        onChange={(event) => { handleUpdateUserName({ index, name: event.target.value }) }}
+                                        sx={{
+                                            flexGrow: 1,
+                                        }}
+                                    />
+                                    {/* 擁有者icon */}
+                                    <IconButton
+                                        onClick={() => { handleSetOwner(index) }}
+                                    >
+                                        {isOwner
+                                            ? <FlagIcon color='primary' />
+                                            : <OutlinedFlagIcon />
+                                        }
+
+                                    </IconButton>
+
+                                    {/* 刪除按鈕 */}
+                                    <IconButton color='warning' onClick={() => { handleDeleteOwner(index) }}>
+                                        <CancelIcon />
+                                    </IconButton>
+                                </Stack>
+                            )
+                            )}
+                            <Button variant='outlined' startIcon={<AddIcon />}
+                                sx={{
+                                    // color: 'text.secondary',
+                                    // border: 'text.secondary'
+                                }}
+                                // color='secondary'
+                                onClick={handleAddUser}>
+                                新增成員
+                            </Button>
+                        </Stack>
+
                     </Stack>
 
                     {/* 按鈕 */}
